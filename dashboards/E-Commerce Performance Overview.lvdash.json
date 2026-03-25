@@ -1,0 +1,531 @@
+{
+  "datasets": [
+    {
+      "name": "34083425",
+      "displayName": "agg_sales_summary (Revenue by country)",
+      "queryLines": [
+        "SELECT shipping_country, SUM(gross_revenue) AS total_revenue\r\n",
+        "FROM catalog_ecommerce.golden.agg_sales_summary\r\n",
+        "GROUP BY shipping_country\r\n",
+        "ORDER BY total_revenue DESC\r\n",
+        "LIMIT 10;"
+      ],
+      "catalog": "catalog_ecommerce",
+      "schema": "golden"
+    },
+    {
+      "name": "4ffe9ac8",
+      "displayName": "agg_customer_360",
+      "queryLines": [
+        "select * from catalog_ecommerce.golden.agg_customer_360 limit 1000"
+      ]
+    },
+    {
+      "name": "9d4483ef",
+      "displayName": "agg_product_performance",
+      "queryLines": [
+        "SELECT * FROM catalog_ecommerce.golden.agg_product_performance limit 1000"
+      ],
+      "columns": [
+        {
+          "displayName": "Estimated Sales",
+          "description": "Estimated total sales calculated as price multiplied by review count as a proxy for sales volume",
+          "expression": "`price` * `review_count`"
+        },
+        {
+          "displayName": "Sales Performance Flag",
+          "description": "Flag to identify products with high sales but low ratings for highlighting",
+          "expression": "CASE \r\nWHEN (`price` * `review_count` > 60000) AND (`avg_rating` < 3.3) THEN 'High Sales, Low Rating' \r\nWHEN (`price` * `review_count` > 60000) THEN 'High Sales' \r\nWHEN (`avg_rating` < 3.3) THEN 'Low Rating' ELSE 'Normal' END"
+        }
+      ]
+    },
+    {
+      "name": "536ada82",
+      "displayName": "Review Sentiment Analysis",
+      "queryLines": [
+        "SELECT\n",
+        "  'Positive' as sentiment_type,\n",
+        "  category,\n",
+        "  SUM(positive_count) as review_count\n",
+        "FROM\n",
+        "  catalog_ecommerce.golden.agg_review_sentiment\n",
+        "GROUP BY\n",
+        "  category\n",
+        "UNION ALL\n",
+        "SELECT\n",
+        "  'Neutral' as sentiment_type,\n",
+        "  category,\n",
+        "  SUM(neutral_count) as review_count\n",
+        "FROM\n",
+        "  catalog_ecommerce.golden.agg_review_sentiment\n",
+        "GROUP BY\n",
+        "  category\n",
+        "UNION ALL\n",
+        "SELECT\n",
+        "  'Negative' as sentiment_type,\n",
+        "  category,\n",
+        "  SUM(negative_count) as review_count\n",
+        "FROM\n",
+        "  catalog_ecommerce.golden.agg_review_sentiment\n",
+        "GROUP BY\n",
+        "  category"
+      ]
+    },
+    {
+      "name": "6f5ded47",
+      "displayName": "agg_sales_summary (Order value over time)",
+      "queryLines": [
+        "SELECT order_date_dt, SUM(avg_order_value) as total_order_value\r\n",
+        "FROM catalog_ecommerce.golden.agg_sales_summary\r\n",
+        "GROUP BY order_date_dt\r\n",
+        "ORDER BY order_date_dt ASC;"
+      ],
+      "catalog": "catalog_ecommerce",
+      "schema": "golden"
+    }
+  ],
+  "pages": [
+    {
+      "name": "764a9f71",
+      "displayName": "DB",
+      "layout": [
+        {
+          "widget": {
+            "name": "9d77aa44",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4ffe9ac8",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "customer_segment",
+                      "expression": "`customer_segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Customer Segment Distribution",
+                "showTitle": true
+              },
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count(*)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Customer Count"
+                },
+                "color": {
+                  "fieldName": "customer_segment",
+                  "legend": {
+                    "position": "right"
+                  },
+                  "displayName": "Segment",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Loyal",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      },
+                      {
+                        "value": "Hibernating",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 5
+                        }
+                      },
+                      {
+                        "value": "Potential Loyalist",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 7
+                        }
+                      }
+                    ]
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 7,
+            "y": 11,
+            "width": 5,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "8ba3d0a9",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "9d4483ef",
+                  "fields": [
+                    {
+                      "name": "Sales Performance Flag",
+                      "expression": "`Sales Performance Flag`"
+                    },
+                    {
+                      "name": "product_name",
+                      "expression": "`product_name`"
+                    },
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "review_count",
+                      "expression": "`review_count`"
+                    },
+                    {
+                      "name": "Estimated Sales",
+                      "expression": "`Estimated Sales`"
+                    },
+                    {
+                      "name": "avg_rating",
+                      "expression": "`avg_rating`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Product Sales vs Rating Analysis",
+                "showTitle": true
+              },
+              "widgetType": "scatter",
+              "encodings": {
+                "x": {
+                  "fieldName": "Estimated Sales",
+                  "displayName": "Estimated Sales",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg_rating",
+                  "displayName": "Average Rating",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "Sales Performance Flag",
+                  "legend": {
+                    "position": "right"
+                  },
+                  "displayName": "Performance Category",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "High Sales",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 1
+                        }
+                      },
+                      {
+                        "value": "High Sales, Low Rating",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 9
+                        }
+                      },
+                      {
+                        "value": "Low Rating",
+                        "color": "#404B52"
+                      },
+                      {
+                        "value": "Normal",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 5
+                        }
+                      }
+                    ]
+                  }
+                },
+                "extra": [
+                  {
+                    "fieldName": "product_name",
+                    "displayName": "Product"
+                  },
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category"
+                  },
+                  {
+                    "fieldName": "review_count",
+                    "displayName": "Review Count"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "74c5b4f7",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "34083425",
+                  "fields": [
+                    {
+                      "name": "shipping_country",
+                      "expression": "`shipping_country`"
+                    },
+                    {
+                      "name": "sum(total_revenue)",
+                      "expression": "SUM(`total_revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Top 10 performing countries",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "shipping_country",
+                  "axis": {
+                    "labelAngle": 45
+                  },
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "shipping_country",
+                  "legend": {
+                    "position": "right",
+                    "hide": true
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "avg-order-value-over-time",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "6f5ded47",
+                  "fields": [
+                    {
+                      "name": "order_date_dt",
+                      "expression": "`order_date_dt`"
+                    },
+                    {
+                      "name": "total_order_value",
+                      "expression": "`total_order_value`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "frame": {
+                "showTitle": true,
+                "title": "Avg. order value over time"
+              },
+              "widgetType": "forecast-line",
+              "encodings": {
+                "x": {
+                  "fieldName": "order_date_dt",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "original": {
+                    "fieldName": "total_order_value"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "698e76f7",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size: 36px;line-height: 1.5;\">**E-Commerce Performance Overview**</span>"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "5a1b62c2",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "536ada82",
+                  "fields": [
+                    {
+                      "name": "sentiment_type",
+                      "expression": "`sentiment_type`"
+                    },
+                    {
+                      "name": "sum(review_count)",
+                      "expression": "SUM(`review_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Review Sentiment Distribution",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sentiment_type",
+                  "displayName": "Sentiment Type",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "Positive",
+                        "Neutral",
+                        "Negative"
+                      ]
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(review_count)",
+                  "format": {
+                    "type": "number-plain",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 0
+                    },
+                    "abbreviation": "compact"
+                  },
+                  "displayName": "Total Reviews",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "sentiment_type",
+                  "legend": {
+                    "position": "right"
+                  },
+                  "displayName": "Sentiment Type",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 7,
+            "height": 4
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
