@@ -1,3 +1,4 @@
+## Deprecated, as this version was not used due to account issues from Azure
 name: Dynamic Databricks Notebook Deploy
 
 on:
